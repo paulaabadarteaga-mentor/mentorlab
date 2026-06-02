@@ -2263,41 +2263,6 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 </style>
 
-<!-- ══ EMAILJS SETUP PANEL (solo visible si PUBLIC_KEY está vacío) ══ -->
-<div id="emailjs-setup-banner" style="display:none;position:fixed;bottom:100px;left:50%;transform:translateX(-50%);z-index:500;max-width:440px;width:calc(100% - 32px)">
-  <div style="background:var(--black);color:white;border-radius:16px;padding:1.25rem 1.375rem;box-shadow:0 16px 48px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1)">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem">
-      <div style="font-family:var(--fh);font-size:1rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em">⚙️ Configurar Emails</div>
-      <button onclick="document.getElementById('emailjs-setup-banner').style.display='none'" style="background:rgba(255,255,255,.1);border:none;color:white;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center">×</button>
-    </div>
-    <p style="font-size:.8125rem;color:rgba(255,255,255,.65);line-height:1.6;margin-bottom:1rem">Para enviar emails automáticos de confirmación, configura EmailJS (gratis, 200 emails/mes):</p>
-    <ol style="font-size:.8rem;color:rgba(255,255,255,.7);line-height:1.8;padding-left:1.25rem;margin-bottom:1rem">
-      <li>Ve a <a href="https://www.emailjs.com" target="_blank" style="color:var(--blue)">emailjs.com</a> → crea cuenta gratis</li>
-      <li>Email Services → Add Service → Gmail</li>
-      <li>Email Templates → Create Template (x2)</li>
-      <li>Account → API Keys → copia tu Public Key</li>
-      <li>Edita este HTML y rellena <code style="background:rgba(255,255,255,.1);padding:.1rem .4rem;border-radius:4px;font-size:.75rem">EMAILJS_CONFIG</code></li>
-    </ol>
-    <a href="https://www.emailjs.com/docs/" target="_blank" style="display:inline-block;background:var(--blue);color:white;padding:.5rem 1.125rem;border-radius:8px;text-decoration:none;font-size:.8125rem;font-weight:700">Ver documentación →</a>
-  </div>
-</div>
-<script>
-// Show setup banner if EmailJS not configured (only once per session)
-(function(){
-  if(!EMAILJS_CONFIG.PUBLIC_KEY && !sessionStorage.getItem('setup-dismissed')){
-    setTimeout(()=>{
-      const b=document.getElementById('emailjs-setup-banner');
-      if(b) b.style.display='block';
-    }, 3000);
-  }
-  const closeBtn=document.querySelector('#emailjs-setup-banner button');
-  if(closeBtn){
-    const orig=closeBtn.onclick;
-    closeBtn.onclick=()=>{ sessionStorage.setItem('setup-dismissed','1'); if(orig)orig(); };
-  }
-})();
-</script>
-
 <!-- MOBILE BOTTOM NAV -->
 <div id="bottom-nav">
   <button class="bnav-btn active" onclick="showPage('landing');" id="bnav-home">
