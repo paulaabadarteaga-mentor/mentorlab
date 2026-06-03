@@ -763,6 +763,44 @@ textarea.form-input{resize:none;line-height:1.6}
 }
 
 
+/* ═══════════════════════════════════════════
+   CALENDLY EMBED
+═══════════════════════════════════════════ */
+.calendly-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);
+  z-index:500;display:flex;align-items:center;justify-content:center;
+  padding:16px;animation:fadeIn .2s ease;
+}
+.calendly-modal{
+  background:var(--card);border-radius:var(--rl);
+  width:100%;max-width:900px;height:90vh;
+  display:flex;flex-direction:column;
+  overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.35);
+}
+.calendly-modal-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 1.375rem;border-bottom:2px solid var(--border);
+  flex-shrink:0;
+}
+.calendly-modal-title{
+  font-family:var(--fh);font-size:1.125rem;font-weight:900;
+  text-transform:uppercase;letter-spacing:.03em;color:var(--black);
+}
+.calendly-modal-sub{font-size:.8125rem;color:var(--ink3);margin-top:.1rem}
+.calendly-close{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--bg);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.125rem;color:var(--ink2);transition:all .15s;flex-shrink:0;
+}
+.calendly-close:hover{background:var(--border);color:var(--black)}
+.calendly-iframe-wrap{flex:1;overflow:hidden}
+.calendly-iframe-wrap iframe{width:100%;height:100%;border:none}
+@media(max-width:600px){
+  .calendly-modal{height:95vh;border-radius:16px 16px 0 0;margin-top:auto}
+  .calendly-overlay{align-items:flex-end;padding:0}
+}
+
 /* ═══════════════════════════════════════════════
    ADMIN / CONFIG PAGE
 ═══════════════════════════════════════════════ */
@@ -894,6 +932,9 @@ textarea.form-input{resize:none;line-height:1.6}
   .admin-hero{padding:1.5rem}
 }
 </style>
+  <!-- Calendly Widget -->
+  <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
+  <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
   <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
@@ -906,10 +947,9 @@ textarea.form-input{resize:none;line-height:1.6}
     <div class="logo-wordmark" style="font-size:3rem;letter-spacing:.05em">Mentor<span>Lab</span></div>
   </div>
   <div class="nav-links">
-    <button class="nav-link" onclick="showPage('mentors')">Explorar mentores</button>
     <button class="nav-link" onclick="showPage('landing')">Cómo funciona</button>
     <a class="nav-link" href="https://thealumnisponsorship.com/" target="_blank" rel="noopener" style="text-decoration:none">Quiénes somos</a>
-    <button class="nav-cta" onclick="showPage('mentors')">Inscribirme</button>
+    <button class="nav-cta" onclick="explorarMentores()">Explorar mentores</button>
     <button class="nav-link" onclick="showPage('admin')" style="color:rgba(255,255,255,.35);font-size:.75rem" title="Configuración de administrador">⚙</button>
   </div>
 </div>
@@ -969,7 +1009,7 @@ textarea.form-input{resize:none;line-height:1.6}
         </div>
         <div class="mc-foot-h">
           <span><span class="avail-dot"></span><span class="avail-txt">Disponible jul–oct</span></span>
-          <button class="btn-sm-blue" onclick="openMentor(4)">Reservar</button>
+          <button class="btn-sm-blue" onclick="openMentor(4)">Ver perfil</button>
         </div>
       </div>
       <div class="slot-widget">
@@ -1253,6 +1293,7 @@ const MENTORS = [
    razon:"Mentora de prueba para validar el flujo completo de MentorLab."},
   {id:11,av:"av-teal",init:"MA",name:"Monse Arosemena",company:"MentorLab",role:"Mentora de prueba",loc:"Local",area:"Emprendimiento",
    email:"monseescribe@gmail.com",
+   calendlyUrl:"https://calendly.com/thealumnisponsorship/sesion-con-monse-arosemena",
    bio:"Mentora de prueba del programa MentorLab. Disponible para sesiones de validación y onboarding del sistema de agendado.",
    tags:["Prueba","MentorLab","Onboarding"],
    topics:["Sesión de prueba","Validación del sistema","Onboarding MentorLab"],
@@ -1302,7 +1343,7 @@ function renderMentors(list){
       <div class="mc-top">${getAvHtml(m)}<div><div class="mc-name">${m.name}</div><div class="mc-role">${m.role}</div><div class="mc-company">${m.company}</div></div></div>
       <p class="mc-bio">${m.bio}</p>
       <div class="mc-tags">${m.tags.slice(0,3).map((t,i)=>`<span class="${i===0?"tag-blue":"tag-gray"}">${t}</span>`).join("")}</div>
-      <div class="mc-foot"><span class="mc-loc">📍 ${m.loc}</span><button class="mc-btn">Agendar →</button></div>
+      <div class="mc-foot"><span class="mc-loc">📍 ${m.loc}</span><button class="mc-btn" onclick="event.stopPropagation();${m.calendlyUrl ? 'openCalendly('+m.id+')' : 'openMentor('+m.id+')'}">${m.calendlyUrl ? '📅 Reservar' : 'Agendar →'}</button></div>
     </div>`).join("");
 }
 
@@ -1339,7 +1380,7 @@ function openMentor(id){
             <div class="si-row"><i class="ti ti-world si-icon"></i> Virtual, presencial o híbrido</div>
             <div class="si-row"><i class="ti ti-calendar si-icon"></i> Julio – Octubre 2026</div>
           </div>
-          <button class="book-full-btn" onclick="openBooking(${id})">Agendar sesión →</button>
+          <button class="book-full-btn" onclick="${m.calendlyUrl ? 'openCalendly('+id+')' : 'openBooking('+id+')'}">${m.calendlyUrl ? '📅 Reservar en Calendly' : 'Agendar sesión →'}</button>
           <div style="text-align:center;font-size:.8125rem;color:var(--ink3)">Gratis · Sin cuenta requerida</div>
         </div>
       </div>
@@ -2196,6 +2237,55 @@ async function testEmailJS(){
 const _origShowPage = typeof showPage === 'function' ? showPage : null;
 document.addEventListener('DOMContentLoaded', () => {
   loadAdminConfig();
+});
+</script>
+
+<!-- CALENDLY MODAL -->
+<div id="calendly-overlay" class="calendly-overlay" style="display:none" onclick="closeCalendly(event)">
+  <div class="calendly-modal" onclick="event.stopPropagation()">
+    <div class="calendly-modal-head">
+      <div>
+        <div class="calendly-modal-title" id="calendly-modal-title">Agenda tu sesión</div>
+        <div class="calendly-modal-sub" id="calendly-modal-sub">Elige fecha y hora</div>
+      </div>
+      <button class="calendly-close" onclick="closeCalendly()">✕</button>
+    </div>
+    <div class="calendly-iframe-wrap" id="calendly-iframe-wrap">
+      <iframe id="calendly-iframe" src="" title="Calendly"></iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+function openCalendly(mentorId){
+  const m = MENTORS[mentorId];
+  if(!m || !m.calendlyUrl){
+    showToast('Link de Calendly no configurado para este mentor aún');
+    return;
+  }
+  // Set modal content
+  document.getElementById('calendly-modal-title').textContent = 'Sesión con ' + m.name;
+  document.getElementById('calendly-modal-sub').textContent = m.role + ' · ' + m.company;
+
+  // Load Calendly in iframe
+  const url = m.calendlyUrl + '?hide_gdpr_banner=1&primary_color=1260e0';
+  document.getElementById('calendly-iframe').src = url;
+
+  // Show overlay
+  document.getElementById('calendly-overlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCalendly(e){
+  if(e && e.target !== document.getElementById('calendly-overlay')) return;
+  document.getElementById('calendly-overlay').style.display = 'none';
+  document.getElementById('calendly-iframe').src = '';
+  document.body.style.overflow = '';
+}
+
+// Close with Escape key
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeCalendly();
 });
 </script>
 
