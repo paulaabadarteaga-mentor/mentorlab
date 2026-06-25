@@ -1111,29 +1111,6 @@ textarea.form-input{resize:none;line-height:1.6}
     <div class="sec-eyebrow">Mentores destacados</div>
     <div class="sec-title">Alumni listos<br>para ayudarte</div>
     <div id="featured-mentors-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;margin-top:2.25rem"></div>
-    <script>
-    (function(){
-      const featured = [0,1,2];
-      const grid = document.getElementById('featured-mentors-grid');
-      if(grid && typeof MENTORS !== 'undefined'){
-        grid.innerHTML = featured.map(id => {
-          const m = MENTORS[id];
-          const av = (m.photoKey && MENTOR_PHOTOS[m.photoKey])
-            ? `<img style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0" src="${MENTOR_PHOTOS[m.photoKey]}" alt="${m.name}">`
-            : `<div class="mc-av ${m.av}">${m.init}</div>`;
-          const btn = m.calendlyUrl
-            ? `<button class="mc-btn" onclick="event.stopPropagation();openCalendly(${m.id})">📅 Reservar</button>`
-            : `<button class="mc-btn" onclick="event.stopPropagation();openMentor(${m.id})">Agendar →</button>`;
-          return `<div class="mcard" onclick="openMentor(${m.id})">
-            <div class="mc-top">${av}<div><div class="mc-name">${m.name}</div><div class="mc-role">${m.role}</div><div class="mc-company">${m.company}</div></div></div>
-            <p class="mc-bio">${m.bio}</p>
-            <div class="mc-tags">${m.tags.slice(0,3).map((t,i)=>`<span class="${i===0?'tag-blue':'tag-gray'}">${t}</span>`).join('')}</div>
-            <div class="mc-foot"><span class="mc-loc">📍 ${m.loc}</span>${btn}</div>
-          </div>`;
-        }).join('');
-      }
-    })();
-    </script>
     <div style="text-align:center;margin-top:2.5rem">
       <div style="text-align:center">
         <button class="btn-primary" onclick="showPage('mentors')">Ver los 10 mentores →</button>
@@ -1372,7 +1349,7 @@ const MENTORS = [
 let currentMentor=0,bookingStep=1,selectedDay=null,selectedSlot=null,selectedAreas=[],currentMonth=new Date();
 currentMonth.setDate(1);
 
-function showPage(p){document.querySelectorAll(".page").forEach(e=>e.classList.remove("active"));document.getElementById("page-"+p).classList.add("active");window.scrollTo(0,0);if(p==="mentors")renderMentors(MENTORS)}
+function showPage(p){document.querySelectorAll(".page").forEach(e=>e.classList.remove("active"));document.getElementById("page-"+p).classList.add("active");window.scrollTo(0,0);if(p==="mentors")renderMentors(MENTORS);if(p==="landing")renderFeaturedMentors();}
 function scrollToHow(){
   const el=document.getElementById("how-it-works");
   if(!el) return;
@@ -1406,14 +1383,23 @@ function getAvHtml(m,size=52){
 
 function renderMentors(list){
   const g=document.getElementById("mentors-grid");
-  g.innerHTML=list.length===0
+  const displayList=list.filter(m=>!m.tags.includes("Prueba"));
+  g.innerHTML=displayList.length===0
     ?"<div style=\"grid-column:1/-1;text-align:center;padding:4rem;color:var(--ink3)\"><div style=\"font-size:2rem;margin-bottom:1rem\">🔍</div><div style=\"font-size:1rem;font-weight:700;color:var(--ink2)\">Sin resultados</div></div>"
-    :list.map(m=>`<div class="mcard" onclick="openMentor(${m.id})">
-      <div class="mc-top">${getAvHtml(m)}<div><div class="mc-name">${m.name}</div><div class="mc-role">${m.role}</div><div class="mc-company">${m.company}</div></div></div>
-      <p class="mc-bio">${m.bio}</p>
-      <div class="mc-tags">${m.tags.slice(0,3).map((t,i)=>`<span class="${i===0?"tag-blue":"tag-gray"}">${t}</span>`).join("")}</div>
-      <div class="mc-foot"><span class="mc-loc">📍 ${m.loc}</span><button class="mc-btn" onclick="event.stopPropagation();${m.calendlyUrl ? 'openCalendly('+m.id+')' : 'openMentor('+m.id+')'}">${m.calendlyUrl ? '📅 Reservar' : 'Agendar →'}</button></div>
-    </div>`).join("");
+    :displayList.map(m=>{
+      const av=(m.photoKey&&MENTOR_PHOTOS[m.photoKey])
+        ?`<img style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--border)" src="${MENTOR_PHOTOS[m.photoKey]}" alt="${m.name}">`
+        :`<div class="mc-av ${m.av}" style="width:52px;height:52px">${m.init}</div>`;
+      const btn=m.calendlyUrl
+        ?`<button class="mc-btn" onclick="event.stopPropagation();openCalendly(${m.id})">📅 Reservar</button>`
+        :`<button class="mc-btn" onclick="event.stopPropagation();openMentor(${m.id})">Ver perfil →</button>`;
+      return `<div class="mcard" onclick="openMentor(${m.id})">
+        <div class="mc-top">${av}<div><div class="mc-name">${m.name}</div><div class="mc-role">${m.role}</div><div class="mc-company">${m.company}</div></div></div>
+        <p class="mc-bio">${m.bio}</p>
+        <div class="mc-tags">${m.tags.slice(0,3).map((t,i)=>`<span class="${i===0?'tag-blue':'tag-gray'}">${t}</span>`).join('')}</div>
+        <div class="mc-foot"><span class="mc-loc">📍 ${m.loc}</span>${btn}</div>
+      </div>`;
+    }).join('');
 }
 
 function filterMentors(){
@@ -1767,6 +1753,30 @@ function renderSuccessStep(el){
 function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500)}
 
 renderMentors(MENTORS);
+
+// Render featured mentors on landing page
+function renderFeaturedMentors(){
+  const featured = [0,1,2,3];
+  const grid = document.getElementById('featured-mentors-grid');
+  if(!grid) return;
+  grid.innerHTML = featured.map(id => {
+    const m = MENTORS[id];
+    if(!m) return '';
+    const av = (m.photoKey && MENTOR_PHOTOS[m.photoKey])
+      ? `<img style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--border)" src="${MENTOR_PHOTOS[m.photoKey]}" alt="${m.name}">`
+      : `<div class="mc-av ${m.av}" style="width:52px;height:52px">${m.init}</div>`;
+    const btn = m.calendlyUrl
+      ? `<button class="mc-btn" onclick="event.stopPropagation();openCalendly(${m.id})">📅 Reservar</button>`
+      : `<button class="mc-btn" onclick="event.stopPropagation();openMentor(${m.id})">Agendar →</button>`;
+    return `<div class="mcard" onclick="openMentor(${m.id})">
+      <div class="mc-top">${av}<div><div class="mc-name">${m.name}</div><div class="mc-role">${m.role}</div><div class="mc-company">${m.company}</div></div></div>
+      <p class="mc-bio">${m.bio}</p>
+      <div class="mc-tags">${m.tags.slice(0,3).map((t,i)=>`<span class="${i===0?'tag-blue':'tag-gray'}">${t}</span>`).join('')}</div>
+      <div class="mc-foot"><span class="mc-loc">📍 ${m.loc}</span>${btn}</div>
+    </div>`;
+  }).join('');
+}
+renderFeaturedMentors();
 </script>
 <script>
 // Initialize EmailJS
